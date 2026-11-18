@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Slay the Spire Android Save Editor</title>
+  <meta name="description"
+    content="Edit Slay the Spire unlocks, ascension levels and compendium progress on Android (or desktop) in your browser.">
+  <style>
+    :root {
+      --bg: #14110f;
+      --panel: #1f1a17;
+      --panel-2: #29221d;
+      --text: #e8e0d6;
+      --muted: #a89b8c;
+      --accent: #e0a23a;
+      --red: #d9534f;
+      --green: #6fbf73;
+      --blue: #5aa9e6;
+      --purple: #b07fd6;
+      --code-bg: #0d0b0a;
+      --border: #3a3029;
+      --ironclad: #d9534f;
+      --silent: #6fbf73;
+      --defect: #5aa9e6;
+      --watcher: #b07fd6;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 1.2rem 1rem 5rem;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      line-height: 1.2;
+      margin: 0;
+      color: var(--accent);
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin: 1.6rem 0 .6rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+      margin: 0 0 .5rem;
+    }
+
+    .sub {
+      color: var(--muted);
+      margin: .3rem 0 0;
+      font-size: .92rem;
+    }
+
+    header {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: .9rem;
+      margin-bottom: 1rem;
+    }
+
+    code,
+    .mono {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .88em;
+    }
+
+    code {
+      background: var(--panel-2);
+      padding: .1em .35em;
+      border-radius: 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .small {
+      font-size: .85rem;
+    }
+
+    button,
+    .btn {
+      font: inherit;
+      font-size: .9rem;
+      cursor: pointer;
+      border-radius: 8px;
+      padding: .5rem .85rem;
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      text-decoration: none;
+    }
+
+    button:hover,
+    .btn:hover {
+      border-color: var(--muted);
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #1a1208;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    button.primary:hover {
+      filter: brightness(1.08);
+    }
+
+    button.danger {
+      color: var(--red);
+    }
+
+    button.tiny {
+      padding: .2rem .55rem;
+      font-size: .78rem;
+      border-radius: 6px;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      align-items: center;
+    }
+
+    .spacer {
+      flex: 1;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: .8rem 0;
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+    }
+
+    .warn {
+      border-left: 4px solid var(--red);
+    }
+
+    .ok {
+      border-left: 4px solid var(--green);
+    }
+
+    .status {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(20, 17, 15, .96);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--border);
+      margin: 0 -1rem;
+      padding: .55rem 1rem;
+    }
+
+    .status .pill {
+      font-size: .8rem;
+      padding: .15rem .55rem;
+      border-radius: 999px;
+      background: var(--panel-2);
+      color: var(--muted);
+    }
+
+    .status .pill.dirty {
+      background: rgba(224, 162, 58, .15);
+      color: var(--accent);
+    }
+
+    .tabs {
+      display: flex;
+      gap: .35rem;
+      overflow-x: auto;
+      padding: .55rem 0 .1rem;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tabs button {
+      flex: none;
+      border-radius: 999px;
+      padding: .35rem .85rem;
+      font-size: .88rem;
+    }
+
+    .tabs button.active {
+      background: var(--accent);
+      color: #1a1208;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+
+    .cmd {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: .6rem 0;
+    }
+
+    .cmd pre {
+      margin: 0;
+      padding: 2rem .9rem .8rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: .8rem;
+      color: #f3e9dc;
+      max-height: 9.5rem;
+      overflow: auto;
+    }
+
+    .cmd button {
+      position: absolute;
+      top: .35rem;
+      right: .35rem;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+      gap: .8rem;
+    }
+
+    .char {
+      border-top: 4px solid var(--c, var(--accent));
+    }
+
+    .char h3 {
+      color: var(--c);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .8rem;
+      padding: .4rem 0;
+      border-bottom: 1px dashed rgba(58, 48, 41, .7);
+    }
+
+    .field:last-child {
+      border-bottom: 0;
+    }
+
+    .field label {
+      flex: 1;
+    }
+
+    .field .hint {
+      display: block;
+      color: var(--muted);
+      font-size: .78rem;
+    }
+
+    input[type=number],
+    input[type=text],
+    input[type=search],
+    select,
+    textarea {
+      font: inherit;
+      background: var(--code-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: .35rem .5rem;
+    }
+
+    input[type=number] {
+      width: 6.5rem;
+      text-align: right;
+    }
+
+    input[type=text] {
+      width: 12rem;
+      max-width: 100%;
+    }
+
+    input[type=search] {
+      width: 100%;
+      padding: .5rem .7rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 18rem;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: .8rem;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .asc {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .asc input[type=range] {
+      width: 9rem;
+      accent-color: var(--c, var(--accent));
+    }
+
+    .asc output {
+      min-width: 1.6rem;
+      text-align: right;
+      font-weight: 700;
+    }
+
+    /* toggle switch */
+    .sw {
+      position: relative;
+      width: 2.6rem;
+      height: 1.5rem;
+      flex: none;
+    }
+
+    .sw input {
+      opacity: 0;
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      margin: 0;
+      cursor: pointer;
+      z-index: 1;
+    }
+
+    .sw span {
+      position: absolute;
+      inset: 0;
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      transition: .15s;
+    }
+
+    .sw span::after {
+      content: "";
+      position: absolute;
+      width: 1.05rem;
+      height: 1.05rem;
+      left: .18rem;
+      top: .17rem;
+      background: var(--muted);
+      border-radius: 50%;
+      transition: .15s;
+    }
+
+    .sw input:checked+span {
+      background: var(--c, var(--green));
+      border-color: var(--c, var(--green));
+    }
+
+    .sw input:checked+span::after {
+      transform: translateX(1.08rem);
+      background: #fff;
+    }
+
+    .sw input:focus-visible+span {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    details {
+      margin-top: .5rem;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: .9rem;
+      padding: .3rem 0;
+    }
+
+    .chips {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+      gap: .35rem;
+    }
+
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: .55rem;
+      padding: .4rem .55rem;
+      border-radius: 8px;
+      background: var(--panel-2);
+      border: 1px solid transparent;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chip:hover {
+      border-color: var(--border);
+    }
+
+    .chip input {
+      width: 1.05rem;
+      height: 1.05rem;
+      accent-color: var(--c, var(--green));
+      flex: none;
+      margin: 0;
+    }
+
+    .chip .nm {
+      line-height: 1.2;
+    }
+
+    .chip .id {
+      display: block;
+      color: var(--muted);
+      font-size: .72rem;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .chip.on {
+      border-color: color-mix(in srgb, var(--c, var(--green)) 45%, transparent);
+    }
+
+    .group-h {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin: 1.1rem 0 .5rem;
+    }
+
+    .group-h h3 {
+      margin: 0;
+      color: var(--c, var(--text));
+    }
+
+    .count {
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .bar {
+      height: 6px;
+      background: var(--panel-2);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: .4rem 0 .2rem;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      background: var(--c, var(--green));
+    }
+
+    table.files {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .9rem;
+    }
+
+    table.files td,
+    table.files th {
+      padding: .45rem .3rem;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+
+    table.files th {
+      color: var(--muted);
+      font-weight: 500;
+      font-size: .8rem;
+    }
+
+    .badge {
+      font-size: .72rem;
+      padding: .1rem .45rem;
+      border-radius: 999px;
+      background: rgba(224, 162, 58, .15);
+      color: var(--accent);
+    }
+
+    .badge.new {
+      background: rgba(111, 191, 115, .15);
+      color: var(--green);
+    }
+
+    .drop {
+      border: 2px dashed var(--border);
+      border-radius: 12px;
+      padding: 1.3rem 1rem;
+      text-align: center;
+    }
+
+    .drop.over {
+      border-color: var(--accent);
+      background: rgba(224, 162, 58, .06);
+    }
+
+    ol.steps {
+      padding-left: 1.2rem;
+      margin: .4rem 0;
+    }
+
+    ol.steps li {
+      margin: .5rem 0;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 1.2rem;
+      transform: translateX(-50%) translateY(150%);
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: .6rem 1rem;
+      border-radius: 10px;
+      transition: .2s;
+      z-index: 50;
+      max-width: 92vw;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, .4);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    footer {
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: .82rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <header>
+      <h1>Slay the Spire Android Save Editor</h1>
+      <p class="sub">For Android (and desktop) progress files: character unlocks, ascension levels, card and relic
+        unlocks, and compendium. Everything runs in your browser. Nothing is uploaded.</p>
+    </header>
+
+    <!-- ============ START SCREEN ============ -->
+    <section id="start">
+      <div class="card note">
+        <strong>Android setup first.</strong> On newer Android versions the game's <code>preferences</code> folder is
+        locked. Follow the <a href="sts-android-unlocks.html">Android unlock guide</a> (steps 2 and 4) once so the files
+        are yours. After that, this editor can read and write them through aShell.
+      </div>
+
+      <h2>1. Copy your files out of the game folder</h2>
+      <p class="muted small">Run this in aShell. It copies your preference files into <code>Download/sts-prefs</code> so
+        the browser can open them.</p>
+      <div class="cmd"><button class="tiny" data-copy="cmd-export">Copy</button>
+        <pre id="cmd-export"></pre>
+      </div>
+
+      <h2>2. Load them here</h2>
+      <div class="drop" id="drop">
+        <p style="margin:.2rem 0 .8rem">Select every <code>STS…</code> file in <code>Download/sts-prefs</code>
+          (long-press to select several), or a <code>.zip</code> of them.</p>
+        <div class="row" style="justify-content:center">
+          <button class="primary" id="btn-pick">Choose files</button>
+          <button id="btn-pick-zip">Choose .zip</button>
+        </div>
+        <input type="file" id="file-in" multiple class="hidden">
+        <input type="file" id="zip-in" accept=".zip,application/zip" class="hidden">
+        <p class="muted small" style="margin:.8rem 0 0">Or drop files here on desktop. Steam's files are in
+          <code>SlayTheSpire/preferences</code>.</p>
+      </div>
+
+      <h2>…or start without your files</h2>
+      <div class="row">
+        <button id="btn-template">Start from a fully unlocked save</button>
+        <button id="btn-blank">Start blank</button>
+      </div>
+      <p class="muted small">Starting without your files resets the stats in any file you replace. Loading your own
+        files keeps them.</p>
+    </section>
+
+    <!-- ============ EDITOR ============ -->
+    <section id="editor" class="hidden">
+      <div class="status">
+        <div class="row">
+          <span class="pill" id="st-files"></span>
+          <span class="pill dirty hidden" id="st-dirty"></span>
+          <span class="spacer"></span>
+          <button class="tiny" id="btn-maxall">Unlock everything</button>
+          <button class="tiny" id="btn-export-tab">Save ⇣</button>
+        </div>
+        <nav class="tabs" id="tabs">
+          <button data-tab="chars" class="active">Characters</button>
+          <button data-tab="unlocks">Unlocks</button>
+          <button data-tab="comp">Compendium</button>
+          <button data-tab="player">Profile</button>
+          <button data-tab="raw">Raw files</button>
+          <button data-tab="export">Save &amp; install</button>
+        </nav>
+      </div>
+
+      <div id="tab-chars"></div>
+      <div id="tab-unlocks" class="hidden"></div>
+      <div id="tab-comp" class="hidden"></div>
+      <div id="tab-player" class="hidden"></div>
+      <div id="tab-raw" class="hidden"></div>
+      <div id="tab-export" class="hidden"></div>
+    </section>
+
+    <footer>
+      Works with the Android (Humble) and Steam versions of Slay the Spire. Back up your files before installing edited
+      ones. Only edits progress files. In-progress runs (<code>saves/*.autosave</code>) aren't touched.
+      <br><button class="tiny" id="btn-restart" style="margin-top:.6rem">Start over</button>
+    </footer>
+  </main>
+  <div class="toast" id="toast"></div>
+
+  <script>
+"use strict";
+/* ================= DATA ================= */
+const TEMPLATE = {"STSDataDefect":{"PLAYTIME":"0","HIGHEST_FLOOR":"0","WIN_COUNT":"1","TOTAL_FLOORS":"0","ENEMY_KILL":"0","BOSS_KILL":"0","FAST_VICTORY":"0","LOSE_COUNT":"0","TOTAL_CRYSTALS_FED":"0","ASCENSION_LEVEL":"20","HIGHEST_SCORE":"0","WIN_STREAK":"0","BEST_WIN_STREAK":"0","HIGHEST_DAILY":"0","LAST_ASCENSION_LEVEL":"1"},"STSDataTheSilent":{"PLAYTIME":"0","HIGHEST_FLOOR":"0","WIN_COUNT":"1","TOTAL_FLOORS":"0","ENEMY_KILL":"0","BOSS_KILL":"0","FAST_VICTORY":"0","LOSE_COUNT":"0","TOTAL_CRYSTALS_FED":"0","ASCENSION_LEVEL":"20","HIGHEST_SCORE":"0","WIN_STREAK":"0","BEST_WIN_STREAK":"0","HIGHEST_DAILY":"0","LAST_ASCENSION_LEVEL":"1"},"STSDataVagabond":{"PLAYTIME":"0","HIGHEST_FLOOR":"0","WIN_COUNT":"1","TOTAL_FLOORS":"0","ENEMY_KILL":"0","BOSS_KILL":"0","FAST_VICTORY":"0","LOSE_COUNT":"1","TOTAL_CRYSTALS_FED":"0","ASCENSION_LEVEL":"20","HIGHEST_SCORE":"0","WIN_STREAK":"0","BEST_WIN_STREAK":"0","HIGHEST_DAILY":"1","LAST_ASCENSION_LEVEL":"1"},"STSDataWatcher":{"PLAYTIME":"0","HIGHEST_FLOOR":"0","WIN_COUNT":"1","TOTAL_FLOORS":"0","ENEMY_KILL":"0","BOSS_KILL":"0","FAST_VICTORY":"0","LOSE_COUNT":"0","TOTAL_CRYSTALS_FED":"0","ASCENSION_LEVEL":"20","HIGHEST_SCORE":"0","WIN_STREAK":"0","BEST_WIN_STREAK":"0","HIGHEST_DAILY":"0","LAST_ASCENSION_LEVEL":"1"},"STSPlayer":{"IRONCLAD_SPIRITS":"1","ftuePopupShown":"true","THE_SILENT_SPIRITS":"1","name":"MetaSkip","DMG_DEALT":"0","IRONCLAD_WIN":"true","THE_SILENT_WIN":"true","DEFECT_WIN":"true","WATCHER_SPIRITS":"1","DEFECT_SPIRITS":"1"},"STSSeenBosses":{"DONUT":"1","GUARDIAN":"1","GHOST":"1","COLLECTOR":"1","CROW":"1","AUTOMATON":"1","SLIME":"1","CHAMP":"1","WIZARD":"1"},"STSSeenCards":{"Strike_R":"1","Defend_R":"1","Bash":"1","Twin Strike":"1","Pommel Strike":"1","Headbutt":"1","Seeing Red":"1","Corruption":"1","Slimed":"1","Juggernaut":"1","Clash":"1","Sever Soul":"1","Anger":"1","Dual Wield":"1","Inflame":"1","Perfected Strike":"1","Iron Wave":"1","Warcry":"1","Injury":"1","Armaments":"1","Offering":"1","Bludgeon":"1","Impervious":"1","Demon Form":"1","Flex":"1","Reckless Charge":"1","Thunderclap":"1","Bloodletting":"1","Dark Shackles":"1","The Bomb":"1","Body Slam":"1","Entrench":"1","Searing Blow":"1","Dark Embrace":"1","Trip":"1","Chrysalis":"1","Second Wind":"1","Clothesline":"1","Dazed":"1","Hemokinesis":"1","Disarm":"1","Metallicize":"1","Rage":"1","Cleave":"1","True Grit":"1","Shrug It Off":"1","Blood for Blood":"1","Burn":"1","Fiend Fire":"1","Heavy Blade":"1","Spot Weakness":"1","Limit Break":"1","Shockwave":"1","Sword Boomerang":"1","Dramatic Entrance":"1","Sadistic Nature":"1","Combust":"1","Feel No Pain":"1","Barricade":"1","Reaper":"1","Battle Trance":"1","Power Through":"1","Whirlwind":"1","Carnage":"1","Double Tap":"1","Mind Blast":"1","Transmutation":"1","Fire Breathing":"1","Flame Barrier":"1","Infernal Blade":"1","Dropkick":"1","Pummel":"1","Rupture":"1","Impatience":"1","Magnetism":"1","Ghostly Armor":"1","Wound":"1","Discovery":"1","Uppercut":"1","Deep Breath":"1","Mayhem":"1","Ghostly":"1","Jack Of All Trades":"1","Intimidate":"1","Secret Weapon":"1","Rampage":"1","Void":"1","Defend_G":"1","Strike_G":"1","Survivor":"1","Neutralize":"1","Poisoned Stab":"1","Dagger Spray":"1","Dash":"1","Outmaneuver":"1","Infinite Blades":"1","Prepared":"1","Shiv":"1","Dodge and Roll":"1","Skewer":"1","Envenom":"1","Calculated Gamble":"1","Heel Hook":"1","Underhanded Strike":"1","Deadly Poison":"1","Distraction":"1","Endless Agony":"1","Expertise":"1","Dagger Throw":"1","Finisher":"1","Reflex":"1","Caltrops":"1","Sucker Punch":"1","Backstab":"1","Unload":"1","Die Die Die":"1","Tactician":"1","Leg Sweep":"1","Noxious Fumes":"1","Eviscerate":"1","Deflect":"1","Predator":"1","Terror":"1","Blade Dance":"1","Acrobatics":"1","PiercingWail":"1","Riddle With Holes":"1","Choke":"1","Doppelganger":"1","Adrenaline":"1","Metamorphosis":"1","After Image":"1","Quick Slash":"1","Flying Knee":"1","Bouncing Flask":"1","Well Laid Plans":"1","All Out Attack":"1","Flechettes":"1","Enlightenment":"1","A Thousand Cuts":"1","Bullet Time":"1","Footwork":"1","Escape Plan":"1","Forethought":"1","Panache":"1","Flash of Steel":"1","HandOfGreed":"1","Finesse":"1","Slice":"1","Backflip":"1","Tools of the Trade":"1","Bane":"1","Catalyst":"1","Corpse Explosion":"1","Crippling Poison":"1","Malaise":"1","Venomology":"1","Masterful Stab":"1","Glass Knife":"1","Secret Technique":"1","Night Terror":"1","Wraith Form v2":"1","Blur":"1","Strike_B":"1","Defend_B":"1","Zap":"1","Dualcast":"1","Redo":"1","Conserve Battery":"1","Stack":"1","Coolheaded":"1","Steam":"1","FTL":"1","Doom and Gloom":"1","Gash":"1","Skim":"1","Cold Snap":"1","Leap":"1","Electrodynamics":"1","Seek":"1","Self Repair":"1","Lockon":"1","Blizzard":"1","Beam Cell":"1","Barrage":"1","Reinforced Body":"1","Rip and Tear":"1","Streamline":"1","Go for the Eyes":"1","Static Discharge":"1","Violence":"1","Heatsinks":"1","Biased Cognition":"1","Hello World":"1","Chill":"1","Aggregate":"1","Compile Driver":"1","Sweeping Beam":"1","Chaos":"1","Rainbow":"1","Creative AI":"1","Double Energy":"1","Loop":"1","Genetic Algorithm":"1","BootSequence":"1","Capacitor":"1","Defragment":"1","Consume":"1","Hologram":"1","RitualDagger":"1","Writhe":"1","Fission":"1","Machine Learning":"1","Auto Shields":"1","Apotheosis":"1","Good Instincts":"1","Swift Strike":"1","Purity":"1","Panacea":"1","Amplify":"1","Scrape":"1","Reprogram":"1","Tempest":"1","Glacier":"1","Buffer":"1","Melter":"1","Ball Lightning":"1","All For One":"1","Storm":"1","Rebound":"1","Undo":"1","Echo Form":"1","Burning Pact":"1","Feed":"1","Brutality":"1","Master of Strategy":"1","Berserk":"1","Thinking Ahead":"1","Madness":"1","Wild Strike":"1","Evolve":"1","Immolate":"1","Burst":"1","Cloak And Dagger":"1","Accuracy":"1","Storm of Steel":"1","White Noise":"1","Thunder Strike":"1","Steam Power":"1","Doubt":"1","Parasite":"1","Multi-Cast":"1","Clumsy":"1","Bandage Up":"1","Turbo":"1","Sunder":"1","Meteor Strike":"1","Decay":"1","Necronomicurse":"1","Blind":"1","Phantasmal Killer":"1","Fusion":"1","Hyperbeam":"1","Recycle":"1","Core Surge":"1","Havoc":"1","Sentinel":"1","Exhume":"1","Regret":"1","Shame":"1","Darkness":"1","Reboot":"1","Force Field":"1","Concentrate":"1","Setup":"1","Grand Finale":"1","PanicButton":"1","Pain":"1","Bite":"1","AscendersBane":"1","J.A.X.":"1","Normality":"1","Pride":"1","Strike_P":"1","Defend_P":"1","Eruption":"1","Vigilance":"1","Miracle":"1","CutThroughFate":"1","FearNoEvil":"1","FollowUp":"1","FlyingSleeves":"1","Weave":"1","Brilliance":"1","EmptyBody":"1","FlurryOfBlows":"1","CarveReality":"1","SandsOfTime":"1","ClearTheMind":"1","Truth":"1","BowlingBash":"1","CleanseEvil":"1","WaveOfTheHand":"1","Protect":"1","Establishment":"1","Meditate":"1","PathToVictory":"1","DeusExMachina":"1","SignatureMove":"1","InnerPeace":"1","Adaptation":"1","Consecrate":"1","Tantrum":"1","Perseverance":"1","EmptyMind":"1","FlowState":"1","CrushJoints":"1","Fasting":"1","Evaluate":"1","Insight":"1","Sanctity":"1","TalkToTheHand":"1","DeceiveReality":"1","Prostrate":"1","Blasphemy":"1","Devotion":"1","JustLucky":"1","Scrawl":"1","EmptyFist":"1","Swivel":"1","SpiritShield":"1","Collect":"1","Halt":"1","Metaphysics":"1","Ragnarok":"1","Worship":"1","ForeignInfluence":"1","Conclude":"1","Vault":"1","ReachHeaven":"1","ThirdEye":"1","BattleHymn":"1","WindmillStrike":"1","Unraveling":"1","Nirvana":"1","Crescendo":"1","MasterReality":"1","Judgement":"1","Wallop":"1","Causality":"1","Vengeance":"1","WreathOfFlame":"1","LessonLearned":"1","DevaForm":"1","Omniscience":"1","StepAndStrike":"1","Alpha":"1","MentalFortress":"1","Clarity":"1","Wish":"1","Wireheading":"1","SashWhip":"1","Indignation":"1","WheelKick":"1","CurseOfTheBell":"1","ConjureBlade":"1","Study":"1","Smite":"1","LikeWater":"1","Pray":"1","BecomeAlmighty":"1","FameAndFortune":"1","LiveForever":"1","Fasting2":"1","Expunger":"1","ThroughViolence":"1","Safety":"1","Beta":"1","Omega":"1"},"STSSeenRelics":{"Burning Blood":"1","Molten Egg 2":"1","Pantograph":"1","Golden Idol":"1","Ornamental Fan":"1","Velvet Choker":"1","Cursed Key":"1","Empty Cage":"1","MutagenicStrength":"1","Incense Burner":"1","Toxic Egg 2":"1","Toolbox":"1","Ring of the Snake":"1","Ginger":"1","MawBank":"1","HandDrill":"1","Pen Nib":"1","Dodecahedron":"1","Odd Mushroom":"1","Bag of Preparation":"1","Sundial":"1","Oddly Smooth Stone":"1","Thread and Needle":"1","Frozen Eye":"1","Bottled Lightning":"1","Letter Opener":"1","Runic Cube":"1","Tiny House":"1","Calling Bell":"1","Torii":"1","Paper Frog":"1","Mummified Hand":"1","Strange Spoon":"1","Bottled Tornado":"1","Mercury Hourglass":"1","Kunai":"1","Darkstone Periapt":"1","Orichalcum":"1","Chemical X":"1","Mark of Pain":"1","Girya":"1","MealTicket":"1","Red Mask":"1","Magic Flower":"1","Gambling Chip":"1","Old Coin":"1","Potion Belt":"1","PrismaticShard":"1","Sozu":"1","Lizard Tail":"1","Runic Pyramid":"1","Anchor":"1","Cauldron":"1","Bag of Marbles":"1","Gremlin Horn":"1","Matryoshka":"1","Lantern":"1","Medical Kit":"1","Boot":"1","Omamori":"1","Prayer Wheel":"1","Shovel":"1","Ninja Scroll":"1","Whetstone":"1","Busted Crown":"1","Orrery":"1","Bottled Flame":"1","Snake Skull":"1","Blood Vial":"1","ClockworkSouvenir":"1","Runic Dome":"1","Philosopher's Stone":"1","Black Star":"1","PreservedInsect":"1","War Paint":"1","Regal Pillow":"1","Cracked Core":"1","Happy Flower":"1","Coffee Dripper":"1","White Beast Statue":"1","The Specimen":"1","Strawberry":"1","Vajra":"1","Eternal Feather":"1","Ring of the Serpent":"1","Sling":"1","FossilizedHelix":"1","Du-Vu Doll":"1","Smiling Mask":"1","Tiny Chest":"1","Bird Faced Urn":"1","Nuclear Battery":"1","Juzu Bracelet":"1","Inserter":"1","Calipers":"1","Meat on the Bone":"1","WingedGreaves":"1","Toy Ornithopter":"1","Shuriken":"1","Mango":"1","OrangePellets":"1","Bronze Scales":"1","Question Card":"1","Red Skull":"1","Ancient Tea Set":"1","Lee's Waffle":"1","Nunchaku":"1","Ectoplasm":"1","Frozen Egg 2":"1","Mark of the Bloom":"1","DollysMirror":"1","Centennial Puzzle":"1","Astrolabe":"1","Snecko Eye":"1","Membership Card":"1","Pocketwatch":"1","Dream Catcher":"1","Necronomicon":"1","NeowsBlessing":"1","WristBlade":"1","Art of War":"1","The Courier":"1","Pandora's Box":"1","Unceasing Top":"1","Fusion Hammer":"1","TheAbacus":"1","Charon's Ashes":"1","Nilry's Codex":"1","Champion Belt":"1","Black Blood":"1","Blue Candle":"1","Dead Branch":"1","Singing Bowl":"1","Cables":"1","Turnip":"1","Runic Capacitor":"1","StoneCalendar":"1","FrozenCore":"1","Peace Pipe":"1","Pear":"1","Emotion Chip":"1","Symbiotic Virus":"1","DataDisk":"1","Paper Crane":"1","Nloth's Gift":"1","Ice Cream":"1","Tough Bandages":"1","HoveringKite":"1","Bloody Idol":"1","TwistedFunnel":"1","Brimstone":"1","CultistMask":"1","Self Forming Clay":"1","SsserpentHead":"1","Tingsha":"1","Enchiridion":"1","Spirit Poop":"1","WarpedTongs":"1","NlothsMask":"1","GremlinMask":"1","FaceOfCleric":"1","Circlet":"1","PureWater":"1","SlaversCollar":"1","SacredBark":"1","Melange":"1","CaptainsWheel":"1","HornCleat":"1","TungstenRod":"1","Damaru":"1","HolyWater":"1","GoldenEye":"1","Akabeko":"1","Yang":"1","CeramicFish":"1","VioletLotus":"1","StrikeDummy":"1","TeardropLocket":"1","CloakClasp":"1","InkBottle":"1"},"STSUnlockProgress":{"IRONCLADTotalScore":"0","THE_SILENTUnlockLevel":"6","IRONCLADProgress":"311","THE_SILENTHighScore":"0","THE_SILENTTotalScore":"0","IRONCLADUnlockLevel":"6","THE_SILENTCurrentCost":"3000","IRONCLADCurrentCost":"3000","THE_SILENTProgress":"240","IRONCLADHighScore":"0","DEFECTUnlockLevel":"6","DEFECTCurrentCost":"3000","DEFECTProgress":"311","DEFECTTotalScore":"0","DEFECTHighScore":"0","WATCHERUnlockLevel":"6","WATCHERCurrentCost":"3000","WATCHERProgress":"311","WATCHERTotalScore":"0","WATCHERHighScore":"0"},"STSUnlocks":{"Immolate":"2","Grand Finale":"2","Corpse Explosion":"2","Carnage":"2","The Silent":"2","Singing Bowl":"2","Spot Weakness":"2","CROW":"2","Tactician":"2","Bane":"2","AUTOMATON":"2","Smiling Mask":"2","CHAMP":"2","WIZARD":"2","Accuracy":"2","Limit Break":"2","Shovel":"2","Entrench":"2","Prayer Wheel":"2","Tiny Chest":"2","Ghostly Armor":"2","Cloak And Dagger":"2","Setup":"2","SLIME":"2","Underhanded Strike":"2","Storm of Steel":"2","Reflex":"2","DONUT":"2","GUARDIAN":"2","Sentinel":"2","GHOST":"2","Blue Candle":"2","Dead Branch":"2","Wild Strike":"2","The Courier":"2","Omamori":"2","Evolve":"2","Du-Vu Doll":"2","Exhume":"2","Havoc":"2","COLLECTOR":"2","Pandora's Box":"2","Heavy Blade":"2","Art of War":"2","Concentrate":"2","Catalyst":"2","Defect":"2","Emotion Chip":"2","Symbiotic Virus":"2","DataDisk":"2","Cables":"2","Turnip":"2","Runic Capacitor":"2","Hyperbeam":"2","Recycle":"2","Nova":"2","Turbo":"2","Sunder":"2","Meteor Strike":"2","Rebound":"2","Undo":"2","Echo Form":"2","Core Surge":"2","Watcher":"2","SpiritShield":"2","Wish":"2","Wireheading":"2","ForeignInfluence":"2","Alpha":"2","MentalFortress":"2","Prostrate":"2","Blasphemy":"2","Devotion":"2","StrikeDummy":"2","TeardropLocket":"2","CloakClasp":"2","Akabeko":"2","Yang":"2","CeramicFish":"2"}};
+
+const PKG_DIR = "/sdcard/Android/data/com.humble.SlayTheSpire/files/preferences";
+const DL_DIR = "/sdcard/Download/sts-prefs";
+const ZIP_NAME = "sts-preferences.zip";
+
+const CHARS = [
+  { key: "IRONCLAD",   name: "Ironclad",    file: "STSDataVagabond",  unlock: null,         color: "var(--ironclad)" },
+  { key: "THE_SILENT", name: "The Silent",  file: "STSDataTheSilent", unlock: "The Silent", color: "var(--silent)" },
+  { key: "DEFECT",     name: "The Defect",  file: "STSDataDefect",    unlock: "Defect",     color: "var(--defect)" },
+  { key: "WATCHER",    name: "The Watcher", file: "STSDataWatcher",   unlock: "Watcher",    color: "var(--watcher)" },
+];
+
+const STAT_LABELS = {
+  WIN_COUNT: "Wins", LOSE_COUNT: "Losses", HIGHEST_FLOOR: "Highest floor", TOTAL_FLOORS: "Total floors climbed",
+  ENEMY_KILL: "Enemies killed", BOSS_KILL: "Bosses killed", PLAYTIME: "Playtime (seconds)", FAST_VICTORY: "Fastest victory (seconds)",
+  HIGHEST_SCORE: "Highest score", WIN_STREAK: "Current win streak", BEST_WIN_STREAK: "Best win streak",
+  HIGHEST_DAILY: "Highest daily score", TOTAL_CRYSTALS_FED: "Crystals fed", LAST_ASCENSION_LEVEL: "Last selected ascension",
+};
+
+const BOSS_NAMES = {
+  GUARDIAN: "The Guardian", GHOST: "Hexaghost", SLIME: "Slime Boss", CHAMP: "The Champ", AUTOMATON: "Bronze Automaton",
+  COLLECTOR: "The Collector", CROW: "Awakened One", DONUT: "Donu and Deca", WIZARD: "Time Eater",
+};
+const NAME_OVERRIDES = {
+  "Underhanded Strike": "Sneaky Strike", "Undo": "Equilibrium", "Wireheading": "Foresight", "Yang": "Duality",
+  "Cables": "Gold-Plated Cables", "DataDisk": "Data Disk", "Wraith Form v2": "Wraith Form", "Lockon": "Bullseye",
+  "Fasting2": "Fasting", "Molten Egg 2": "Molten Egg", "Toxic Egg 2": "Toxic Egg", "Frozen Egg 2": "Frozen Egg",
+  "MutagenicStrength": "Mutagenic Strength", "PiercingWail": "Piercing Wail", "HandOfGreed": "Hand of Greed",
+  "Strike_R": "Strike (Ironclad)", "Defend_R": "Defend (Ironclad)", "Strike_G": "Strike (Silent)", "Defend_G": "Defend (Silent)",
+  "Strike_B": "Strike (Defect)", "Defend_B": "Defend (Defect)", "Strike_P": "Strike (Watcher)", "Defend_P": "Defend (Watcher)",
+  "AscendersBane": "Ascender's Bane", "RitualDagger": "Ritual Dagger", "BootSequence": "Boot Sequence", "Ghostly": "Apparition",
+  "Venomology": "Alchemize", "Steam": "Steam Barrier", "Gash": "Claw", "Conserve Battery": "Charge Battery",
+  "Redo": "Recursion", "Nloth's Gift": "N'loth's Gift", "NlothsMask": "N'loth's Hungry Face",
+  "MawBank": "Maw Bank", "HandDrill": "Hand Drill", "MealTicket": "Meal Ticket", "PrismaticShard": "Prismatic Shard",
+  "ClockworkSouvenir": "Clockwork Souvenir", "PreservedInsect": "Preserved Insect", "FossilizedHelix": "Fossilized Helix",
+  "WingedGreaves": "Wing Boots", "OrangePellets": "Orange Pellets", "DollysMirror": "Dolly's Mirror",
+  "NeowsBlessing": "Neow's Lament", "WristBlade": "Wrist Blade", "TheAbacus": "The Abacus", "StoneCalendar": "Stone Calendar",
+  "FrozenCore": "Frozen Core", "HoveringKite": "Hovering Kite", "TwistedFunnel": "Twisted Funnel", "CultistMask": "Cultist Headpiece",
+  "SsserpentHead": "Ssserpent Head", "GremlinMask": "Gremlin Visage", "FaceOfCleric": "Face of Cleric", "PureWater": "Pure Water",
+  "SlaversCollar": "Slaver's Collar", "SacredBark": "Sacred Bark", "CaptainsWheel": "Captain's Wheel",
+  "HornCleat": "Horn Cleat", "TungstenRod": "Tungsten Rod", "HolyWater": "Holy Water", "GoldenEye": "Golden Eye",
+  "CeramicFish": "Ceramic Fish", "VioletLotus": "Violet Lotus", "StrikeDummy": "Strike Dummy", "TeardropLocket": "Teardrop Locket",
+  "CloakClasp": "Cloak Clasp", "InkBottle": "Ink Bottle", "WarpedTongs": "Warped Tongs",
+};
+
+// Card colour groups for the Unlocks tab (by card ID).
+const UNLOCK_GROUPS = [
+  { title: "Characters", color: "var(--accent)", ids: ["The Silent", "Defect", "Watcher"] },
+  { title: "Ironclad cards", color: "var(--ironclad)", ids: ["Heavy Blade","Spot Weakness","Limit Break","Wild Strike","Evolve","Immolate","Havoc","Sentinel","Exhume","Entrench","Ghostly Armor","Carnage"] },
+  { title: "Silent cards", color: "var(--silent)", ids: ["Bane","Catalyst","Corpse Explosion","Cloak And Dagger","Accuracy","Storm of Steel","Concentrate","Setup","Grand Finale","Tactician","Reflex","Underhanded Strike"] },
+  { title: "Defect cards", color: "var(--defect)", ids: ["Rebound","Undo","Echo Form","Turbo","Sunder","Meteor Strike","Hyperbeam","Recycle","Core Surge","Nova"] },
+  { title: "Watcher cards", color: "var(--watcher)", ids: ["Prostrate","Blasphemy","Devotion","ForeignInfluence","Alpha","MentalFortress","SpiritShield","Wish","Wireheading"] },
+  { title: "Relics", color: "var(--accent)", ids: ["Omamori","Prayer Wheel","Shovel","Art of War","The Courier","Pandora's Box","Blue Candle","Dead Branch","Singing Bowl","Du-Vu Doll","Smiling Mask","Tiny Chest","Cables","Turnip","Runic Capacitor","Emotion Chip","Symbiotic Virus","DataDisk","Akabeko","Yang","CeramicFish","StrikeDummy","TeardropLocket","CloakClasp"] },
+  { title: "Bosses", color: "var(--red)", ids: ["GUARDIAN","GHOST","SLIME","CHAMP","AUTOMATON","COLLECTOR","CROW","DONUT","WIZARD"] },
+];
+
+const KNOWN_FILES = ["STSUnlocks","STSUnlockProgress","STSDataVagabond","STSDataTheSilent","STSDataDefect","STSDataWatcher","STSPlayer","STSSeenCards","STSSeenRelics","STSSeenBosses"];
+
+/* ================= STATE ================= */
+const S = { files: {}, original: {}, tab: "chars", compSearch: "", rawSel: null };
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const pretty = id => NAME_OVERRIDES[id] || BOSS_NAMES[id] || String(id).replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ");
+const clone = o => JSON.parse(JSON.stringify(o));
+
+function toast(msg) {
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function blankFor(name) {
+  if (/^STSData/.test(name)) {
+    const o = {}; for (const k of Object.keys(TEMPLATE.STSDataVagabond)) o[k] = "0"; return o;
+  }
+  return {};
+}
+function peek(name) { return S.files[name] || {}; }
+function ensure(name) { if (!S.files[name]) S.files[name] = blankFor(name); return S.files[name]; }
+function setVal(name, key, val) {
+  const f = ensure(name);
+  if (val === null || val === undefined) delete f[key]; else f[key] = String(val);
+  refreshStatus();
+}
+function isDirty(name) {
+  if (!(name in S.original)) return !!S.files[name];
+  return JSON.stringify(S.files[name]) !== JSON.stringify(S.original[name]);
+}
+function dirtyList() { return Object.keys(S.files).filter(isDirty); }
+function sortedFileNames() {
+  const names = Object.keys(S.files);
+  return names.sort((a, b) => {
+    const ia = KNOWN_FILES.indexOf(a), ib = KNOWN_FILES.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+}
+
+/* Gson-compatible serializer: values as strings, HTML-safe escapes (the game writes ' as '). */
+function serialize(obj, prettyPrint) {
+  const clean = {};
+  for (const [k, v] of Object.entries(obj)) clean[k] = typeof v === "string" ? v : String(v);
+  return JSON.stringify(clean, null, prettyPrint ? 2 : 0)
+    .replace(/[<>&='\u2028\u2029]/g, c => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
+}
+
+/* ================= ZIP (no libraries) ================= */
+const CRC_TABLE = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(bytes) { let c = 0xFFFFFFFF; for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+
+function makeZip(entries) { // [{name, data:Uint8Array}]
+  const enc = new TextEncoder(), parts = [], central = [];
+  const d = new Date();
+  const dosTime = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const dosDate = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  let offset = 0;
+  for (const e of entries) {
+    const nm = enc.encode(e.name), crc = crc32(e.data), sz = e.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true);
+    lh.setUint32(18, sz, true); lh.setUint32(22, sz, true); lh.setUint16(26, nm.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), nm, e.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 0x0314, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true); ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, sz, true); ch.setUint32(24, sz, true); ch.setUint16(28, nm.length, true);
+    ch.setUint32(38, 0o100644 << 16 >>> 0, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), nm);
+    offset += 30 + nm.length + sz;
+  }
+  const cdSize = central.reduce((a, b) => a + b.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: "application/zip" });
+}
+
+async function readZip(buf) {
+  const dv = new DataView(buf), dec = new TextDecoder(), out = [];
+  let i = buf.byteLength - 22;
+  while (i >= 0 && dv.getUint32(i, true) !== 0x06054b50) i--;
+  if (i < 0) throw new Error("Not a zip file");
+  const count = dv.getUint16(i + 10, true);
+  let p = dv.getUint32(i + 16, true);
+  for (let k = 0; k < count; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true);
+    const nlen = dv.getUint16(p + 28, true), elen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true);
+    const off = dv.getUint32(p + 42, true);
+    const name = dec.decode(new Uint8Array(buf, p + 46, nlen));
+    p += 46 + nlen + elen + clen;
+    if (name.endsWith("/") || name.includes("__MACOSX")) continue;
+    const start = off + 30 + dv.getUint16(off + 26, true) + dv.getUint16(off + 28, true);
+    const raw = new Uint8Array(buf, start, csize);
+    let bytes;
+    if (method === 0) bytes = raw;
+    else if (method === 8) {
+      if (typeof DecompressionStream === "undefined") throw new Error("This browser can't unzip. Load the files individually instead.");
+      bytes = new Uint8Array(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());
+    } else continue;
+    out.push({ name: name.split("/").pop(), text: dec.decode(bytes) });
+  }
+  return out;
+}
+
+/* ================= LOADING ================= */
+function parsePrefs(text) {
+  const o = JSON.parse(text.replace(/^﻿/, ""));
+  if (!o || typeof o !== "object" || Array.isArray(o)) throw new Error("not a JSON object");
+  for (const k of Object.keys(o)) if (typeof o[k] !== "string") o[k] = String(o[k]);
+  return o;
+}
+
+function ingest(list) { // [{name,text}]
+  let ok = 0; const skipped = [];
+  for (const { name, text } of list) {
+    const base = name.replace(/\.(json|txt)$/i, "");
+    if (/\.backUp$/i.test(base) || /\.autosave/i.test(base)) { skipped.push(name); continue; }
+    try {
+      const o = parsePrefs(text);
+      S.files[base] = o; S.original[base] = clone(o); ok++;
+    } catch (e) { skipped.push(name); }
+  }
+  if (ok) openEditor();
+  toast(`Loaded ${ok} file${ok === 1 ? "" : "s"}` + (skipped.length ? ` · skipped ${skipped.length}` : ""));
+}
+
+async function loadFileList(files) {
+  const list = [];
+  for (const f of files) {
+    if (/\.zip$/i.test(f.name)) {
+      try { list.push(...await readZip(await f.arrayBuffer())); } catch (e) { toast(e.message); }
+    } else if (f.size < 2_000_000) list.push({ name: f.name, text: await f.text() });
+  }
+  ingest(list);
+}
+
+function startFrom(kind) {
+  S.files = {}; S.original = {};
+  if (kind === "template") {
+    for (const [k, v] of Object.entries(TEMPLATE)) S.files[k] = clone(v);
+    S.files.STSPlayer.name = "Player";
+  }
+  openEditor();
+}
+
+/* ================= ACTIONS ================= */
+function maxChar(c) {
+  const d = ensure(c.file), t = TEMPLATE[c.file];
+  for (const k of Object.keys(t)) if (!(k in d)) d[k] = "0";
+  d.ASCENSION_LEVEL = "20";
+  if (+d.WIN_COUNT < 1) d.WIN_COUNT = "1";
+  if (c.unlock) ensure("STSUnlocks")[c.unlock] = "2";
+  const up = ensure("STSUnlockProgress"), tp = TEMPLATE.STSUnlockProgress;
+  for (const suf of ["UnlockLevel", "CurrentCost", "Progress", "TotalScore", "HighScore"]) {
+    const k = c.key + suf;
+    if (suf === "UnlockLevel" || suf === "CurrentCost") up[k] = tp[k];
+    else if (!(k in up)) up[k] = tp[k] ?? "0";
+  }
+  const pl = ensure("STSPlayer");
+  if (c.key !== "WATCHER") pl[c.key + "_WIN"] = "true";
+  pl[c.key + "_SPIRITS"] = "1";
+}
+
+function unlockEverything() {
+  CHARS.forEach(maxChar);
+  const u = ensure("STSUnlocks");
+  for (const k of Object.keys(TEMPLATE.STSUnlocks)) u[k] = "2";
+  for (const f of ["STSSeenCards", "STSSeenRelics", "STSSeenBosses"]) {
+    const o = ensure(f); for (const k of Object.keys(TEMPLATE[f])) o[k] = "1";
+  }
+  render(); toast("Everything unlocked. Your stats were kept.");
+}
+
+/* ================= RENDER ================= */
+function refreshStatus() {
+  const n = Object.keys(S.files).length, d = dirtyList().length;
+  $("#st-files").textContent = `${n} file${n === 1 ? "" : "s"}`;
+  const sd = $("#st-dirty"); sd.textContent = `${d} changed`; sd.classList.toggle("hidden", !d);
+}
+
+function sw(attrs, checked) {
+  return `<span class="sw"><input type="checkbox" ${attrs} ${checked ? "checked" : ""}><span></span></span>`;
+}
+
+function renderChars() {
+  const u = peek("STSUnlocks"), up = peek("STSUnlockProgress"), pl = peek("STSPlayer");
+  let h = `<p class="muted small">The Silent, Defect and Watcher have to be unlocked before you can pick them. "Beat the game" on Ironclad, Silent and Defect is what opens up Act 4.</p><div class="grid2">`;
+  for (const c of CHARS) {
+    const d = peek(c.file);
+    const asc = +d.ASCENSION_LEVEL || 0;
+    h += `<div class="card char" style="--c:${c.color}">
+      <h3>${esc(c.name)} <span class="spacer"></span><button class="tiny" data-max="${c.key}">Max</button></h3>`;
+    if (c.unlock) h += `<div class="field"><label>Unlocked<span class="hint">STSUnlocks › ${esc(c.unlock)}</span></label>${sw(`data-unlockkey="${esc(c.unlock)}"`, !!u[c.unlock])}</div>`;
+    h += `<div class="field"><label>Ascension unlocked<span class="hint">0 = not unlocked, 20 = max</span></label>
+        <span class="asc"><input type="range" min="0" max="20" value="${asc}" data-f="${c.file}" data-k="ASCENSION_LEVEL"><output>${asc}</output></span></div>
+      <div class="field"><label>Card unlock level<span class="hint">How many unlock bundles are earned (6 = all)</span></label>
+        <input type="number" min="0" max="6" value="${esc(up[c.key + "UnlockLevel"] ?? "0")}" data-f="STSUnlockProgress" data-k="${c.key}UnlockLevel"></div>`;
+    if (c.key !== "WATCHER") h += `<div class="field"><label>Beat the game<span class="hint">Counts toward unlocking Act 4</span></label>${sw(`data-flag="${c.key}_WIN"`, pl[c.key + "_WIN"] === "true")}</div>`;
+    h += `<div class="field"><label>Neow bonus available<span class="hint">STSPlayer › ${c.key}_SPIRITS</span></label>${sw(`data-spirit="${c.key}_SPIRITS"`, pl[c.key + "_SPIRITS"] === "1")}</div>
+      <details><summary>Stats (${esc(c.file)})</summary>`;
+    const keys = Object.keys(Object.keys(d).length ? d : TEMPLATE[c.file]).filter(k => k !== "ASCENSION_LEVEL");
+    for (const k of keys) h += `<div class="field"><label>${esc(STAT_LABELS[k] || pretty(k))}</label><input type="number" min="0" value="${esc(d[k] ?? "0")}" data-f="${c.file}" data-k="${esc(k)}"></div>`;
+    h += `<div class="field"><label>Unlock progress points</label><input type="number" min="0" value="${esc(up[c.key + "Progress"] ?? "0")}" data-f="STSUnlockProgress" data-k="${c.key}Progress"></div>
+      <div class="field"><label>Next unlock cost</label><input type="number" min="0" value="${esc(up[c.key + "CurrentCost"] ?? "0")}" data-f="STSUnlockProgress" data-k="${c.key}CurrentCost"></div>
+      </details></div>`;
+  }
+  $("#tab-chars").innerHTML = h + `</div>`;
+}
+
+function chipList(ids, isOn, attr, color) {
+  return `<div class="chips" style="--c:${color}">` + ids.map(id => {
+    const nm = pretty(id), on = isOn(id);
+    return `<label class="chip ${on ? "on" : ""}"><input type="checkbox" ${attr}="${esc(id)}" ${on ? "checked" : ""}><span class="nm">${esc(nm)}${nm !== id ? `<span class="id">${esc(id)}</span>` : ""}</span></label>`;
+  }).join("") + `</div>`;
+}
+
+function renderUnlocks() {
+  const u = peek("STSUnlocks");
+  const grouped = new Set(UNLOCK_GROUPS.flatMap(g => g.ids));
+  const extra = Object.keys(u).filter(k => !grouped.has(k));
+  const groups = extra.length ? [...UNLOCK_GROUPS, { title: "Other keys in your file", color: "var(--muted)", ids: extra }] : UNLOCK_GROUPS;
+  let h = `<p class="muted small">Cards, relics and bosses that are normally earned by leveling each character. Stored in <code>STSUnlocks</code> with the value <code>"2"</code>.</p>`;
+  groups.forEach((g, gi) => {
+    const on = g.ids.filter(id => u[id]).length;
+    h += `<div class="group-h" style="--c:${g.color}"><h3>${esc(g.title)}</h3><span class="count">${on}/${g.ids.length}</span><span class="spacer"></span>
+      <button class="tiny" data-ugroup="${gi}" data-on="1">All</button><button class="tiny" data-ugroup="${gi}" data-on="0">None</button></div>`;
+    h += chipList(g.ids, id => !!u[id], "data-unlockkey", g.color);
+  });
+  $("#tab-unlocks").innerHTML = h;
+  renderUnlocks.groups = groups;
+}
+
+const COMP = [
+  { file: "STSSeenCards", title: "Cards", color: "var(--blue)" },
+  { file: "STSSeenRelics", title: "Relics", color: "var(--accent)" },
+  { file: "STSSeenBosses", title: "Bosses", color: "var(--red)" },
+];
+function renderComp() {
+  const q = S.compSearch.trim().toLowerCase();
+  let h = `<p class="muted small">Marks entries as "seen" in the in-game Compendium. This doesn't unlock anything, it only fills in the card and relic library.</p>
+    <input type="search" id="comp-search" placeholder="Filter cards, relics, bosses…" value="${esc(S.compSearch)}">`;
+  for (const c of COMP) {
+    const seen = peek(c.file);
+    const all = [...new Set([...Object.keys(TEMPLATE[c.file]), ...Object.keys(seen)])];
+    const n = all.filter(id => seen[id]).length;
+    const shown = q ? all.filter(id => id.toLowerCase().includes(q) || pretty(id).toLowerCase().includes(q)) : all;
+    h += `<div class="group-h" style="--c:${c.color}"><h3>${c.title}</h3><span class="count">${n}/${all.length} seen</span><span class="spacer"></span>
+      <button class="tiny" data-comp="${c.file}" data-on="1">Mark all seen</button><button class="tiny" data-comp="${c.file}" data-on="0">Clear</button></div>
+      <div class="bar" style="--c:${c.color}"><i style="width:${all.length ? (n / all.length * 100).toFixed(1) : 0}%"></i></div>`;
+    h += `<details ${q ? "open" : ""}><summary>${q ? `${shown.length} match${shown.length === 1 ? "" : "es"}` : "Show list"}</summary>` +
+      chipList(shown, id => !!seen[id], `data-seen-${c.file}`, c.color) + `</details>`;
+  }
+  $("#tab-comp").innerHTML = h;
+  const s = $("#comp-search");
+  s.addEventListener("input", () => { S.compSearch = s.value; const pos = s.selectionStart; renderComp(); const n = $("#comp-search"); n.focus(); n.setSelectionRange(pos, pos); });
+}
+
+function renderPlayer() {
+  const pl = peek("STSPlayer");
+  const keys = Object.keys(pl);
+  let h = `<div class="card"><h3>Profile (STSPlayer)</h3>
+    <div class="field"><label>Profile name</label><input type="text" maxlength="40" value="${esc(pl.name ?? "")}" data-f="STSPlayer" data-k="name"></div>`;
+  for (const k of keys) {
+    if (k === "name") continue;
+    const v = pl[k];
+    if (v === "true" || v === "false") h += `<div class="field"><label>${esc(pretty(k))}<span class="hint">${esc(k)}</span></label>${sw(`data-bool="${esc(k)}"`, v === "true")}</div>`;
+    else h += `<div class="field"><label>${esc(pretty(k))}<span class="hint">${esc(k)}</span></label><input type="text" value="${esc(v)}" data-f="STSPlayer" data-k="${esc(k)}" style="width:8rem"></div>`;
+  }
+  h += `</div><p class="muted small">Character win flags and Neow bonus flags are also on the Characters tab. Use Raw files to add keys that aren't listed here.</p>`;
+  $("#tab-player").innerHTML = h;
+}
+
+function renderRaw() {
+  const names = sortedFileNames();
+  if (!S.rawSel || !S.files[S.rawSel]) S.rawSel = names[0] || null;
+  let h = `<p class="muted small">Edit any file directly as JSON. Values must be strings, like <code>"20"</code> or <code>"true"</code>.</p>
+    <div class="row"><select id="raw-sel">${names.map(n => `<option ${n === S.rawSel ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
+    <span class="spacer"></span><button class="tiny" id="raw-new">New file</button>${S.rawSel ? `<button class="tiny danger" id="raw-del">Remove</button>` : ""}</div>`;
+  if (S.rawSel) h += `<textarea id="raw-text" spellcheck="false" style="margin-top:.6rem">${esc(serialize(S.files[S.rawSel], true))}</textarea>
+    <div class="row"><button class="primary" id="raw-apply">Apply changes</button><button id="raw-revert">Revert to loaded</button><span class="muted small" id="raw-msg"></span></div>`;
+  $("#tab-raw").innerHTML = h;
+  $("#raw-sel")?.addEventListener("change", e => { S.rawSel = e.target.value; renderRaw(); });
+  $("#raw-new").addEventListener("click", () => {
+    const n = prompt("File name (for example STSSeenBosses):", "STS");
+    if (!n || !/^[\w.\- ]+$/.test(n)) return;
+    if (!S.files[n]) S.files[n] = blankFor(n);
+    S.rawSel = n; renderRaw(); refreshStatus();
+  });
+  $("#raw-del")?.addEventListener("click", () => {
+    if (!confirm(`Remove ${S.rawSel} from this session? (It won't be included when you save.)`)) return;
+    delete S.files[S.rawSel]; S.rawSel = null; renderRaw(); refreshStatus();
+  });
+  $("#raw-apply")?.addEventListener("click", () => {
+    try { S.files[S.rawSel] = parsePrefs($("#raw-text").value); $("#raw-msg").textContent = "Applied ✓"; $("#raw-msg").style.color = "var(--green)"; refreshStatus(); }
+    catch (e) { $("#raw-msg").textContent = "Invalid JSON: " + e.message; $("#raw-msg").style.color = "var(--red)"; }
+  });
+  $("#raw-revert")?.addEventListener("click", () => {
+    if (S.original[S.rawSel]) S.files[S.rawSel] = clone(S.original[S.rawSel]); else S.files[S.rawSel] = blankFor(S.rawSel);
+    renderRaw(); refreshStatus();
+  });
+}
+
+function installOneLiner(names) {
+  const parts = names.map(n => `rm -f ${n}; printf '%s' '${serialize(S.files[n])}' > ${n}`);
+  return `am force-stop com.humble.SlayTheSpire; cd ${PKG_DIR} && ${parts.join("; ")}; chmod 666 STS*; ls -la`;
+}
+function unzipCmd() {
+  return `am force-stop com.humble.SlayTheSpire; cd ${PKG_DIR} && unzip -o "$(ls -t /sdcard/Download/sts-preferences*.zip | head -1)" && chmod 666 STS* && ls -la`;
+}
+
+function renderExport() {
+  const names = sortedFileNames();
+  const changed = names.filter(isDirty);
+  const onlyChanged = renderExport.only ?? (changed.length > 0 && changed.length < names.length);
+  renderExport.only = onlyChanged;
+  const sel = onlyChanged ? changed : names;
+  let h = `<div class="card ${changed.length ? "note" : ""}">
+    <div class="row"><strong>${changed.length} changed file${changed.length === 1 ? "" : "s"}</strong><span class="spacer"></span>
+    <label class="row small" style="gap:.4rem;cursor:pointer"><input type="checkbox" id="only-changed" ${onlyChanged ? "checked" : ""}> Only save changed files</label></div>
+    <table class="files"><tr><th>File</th><th>Entries</th><th></th><th></th></tr>` +
+    names.map(n => `<tr><td class="mono">${esc(n)}</td><td>${Object.keys(S.files[n]).length}</td>
+      <td>${isDirty(n) ? `<span class="badge ${n in S.original ? "" : "new"}">${n in S.original ? "changed" : "new"}</span>` : ""}</td>
+      <td style="text-align:right"><button class="tiny" data-dl="${esc(n)}">⇣</button></td></tr>`).join("") +
+    `</table></div>`;
+
+  h += `<h2>Option A: one command, no download <span class="muted small">(Android)</span></h2>
+    <p class="muted small">Paste this into aShell. It closes the game and writes ${sel.length} file${sel.length === 1 ? "" : "s"} straight into the game folder. It's long, but it's one line.</p>
+    <div class="cmd"><button class="tiny" data-copy="cmd-oneliner">Copy</button><pre id="cmd-oneliner">${esc(sel.length ? installOneLiner(sel) : "# Nothing to save")}</pre></div>
+
+    <h2>Option B: download a zip <span class="muted small">(Android or desktop)</span></h2>
+    <div class="row"><button class="primary" id="btn-zip" ${sel.length ? "" : "disabled"}>Download ${ZIP_NAME}</button></div>
+    <p class="muted small">Then run this in aShell. It installs the newest <code>sts-preferences*.zip</code> from Download:</p>
+    <div class="cmd"><button class="tiny" data-copy="cmd-unzip">Copy</button><pre id="cmd-unzip">${esc(unzipCmd())}</pre></div>
+    <p class="muted small">If your phone says <code>unzip: not found</code>, extract the zip with ZArchiver into <code>Download/sts-preferences</code>, then run:</p>
+    <div class="cmd"><button class="tiny" data-copy="cmd-cp">Copy</button><pre id="cmd-cp">${esc(`am force-stop com.humble.SlayTheSpire; cp -f /sdcard/Download/sts-preferences/STS* ${PKG_DIR}/ && chmod 666 ${PKG_DIR}/STS* && ls -la ${PKG_DIR}`)}</pre></div>
+    <p class="muted small"><strong>Steam:</strong> close the game and copy the files into <code>SlayTheSpire/preferences</code>. Back up the old ones first.</p>
+
+    <div class="card warn"><strong>Before you install</strong><br>
+    Keep a copy of your original files (the <code>sts-prefs</code> folder from step 1 is your backup). If something goes wrong, copy those back with:
+    <div class="cmd"><button class="tiny" data-copy="cmd-restore">Copy</button><pre id="cmd-restore">${esc(`am force-stop com.humble.SlayTheSpire; cp -f ${DL_DIR}/STS* ${PKG_DIR}/ && chmod 666 ${PKG_DIR}/STS*`)}</pre></div></div>`;
+  $("#tab-export").innerHTML = h;
+  $("#only-changed").addEventListener("change", e => { renderExport.only = e.target.checked; renderExport(); });
+  $("#btn-zip")?.addEventListener("click", () => {
+    const enc = new TextEncoder();
+    downloadBlob(makeZip(sel.map(n => ({ name: n, data: enc.encode(serialize(S.files[n], true)) }))), ZIP_NAME);
+  });
+}
+
+function downloadBlob(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+function render() {
+  refreshStatus();
+  ({ chars: renderChars, unlocks: renderUnlocks, comp: renderComp, player: renderPlayer, raw: renderRaw, export: renderExport })[S.tab]();
+}
+function setTab(t) {
+  S.tab = t;
+  $$("#tabs button").forEach(b => b.classList.toggle("active", b.dataset.tab === t));
+  $$("#editor > div[id^=tab-]").forEach(d => d.classList.toggle("hidden", d.id !== "tab-" + t));
+  render(); window.scrollTo({ top: 0 });
+}
+function openEditor() {
+  $("#start").classList.add("hidden"); $("#editor").classList.remove("hidden");
+  renderExport.only = undefined; setTab("chars");
+}
+
+/* ================= EVENTS ================= */
+document.addEventListener("click", async e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.copy) {
+    const txt = $("#" + t.dataset.copy).textContent;
+    try { await navigator.clipboard.writeText(txt); } catch { const ta = document.createElement("textarea"); ta.value = txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); }
+    t.textContent = "Copied"; setTimeout(() => t.textContent = "Copy", 1400); return;
+  }
+  if (t.dataset.max) { maxChar(CHARS.find(c => c.key === t.dataset.max)); render(); toast("Maxed " + CHARS.find(c => c.key === t.dataset.max).name); return; }
+  if (t.dataset.ugroup !== undefined) {
+    const g = renderUnlocks.groups[+t.dataset.ugroup], u = ensure("STSUnlocks");
+    for (const id of g.ids) { if (t.dataset.on === "1") u[id] = "2"; else delete u[id]; }
+    render(); return;
+  }
+  if (t.dataset.comp) {
+    const o = ensure(t.dataset.comp);
+    if (t.dataset.on === "1") for (const k of Object.keys(TEMPLATE[t.dataset.comp])) o[k] = "1";
+    else for (const k of Object.keys(o)) delete o[k];
+    render(); return;
+  }
+  if (t.dataset.dl) { downloadBlob(new Blob([serialize(S.files[t.dataset.dl], true)], { type: "application/octet-stream" }), t.dataset.dl); return; }
+});
+
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (el.dataset.unlockkey !== undefined) {
+    const u = ensure("STSUnlocks"); if (el.checked) u[el.dataset.unlockkey] = "2"; else delete u[el.dataset.unlockkey];
+    el.closest(".chip")?.classList.toggle("on", el.checked); refreshStatus();
+    if (S.tab === "unlocks") { const y = window.scrollY; renderUnlocks(); window.scrollTo(0, y); }
+    return;
+  }
+  for (const c of COMP) if (el.hasAttribute(`data-seen-${c.file}`)) {
+    const o = ensure(c.file), id = el.getAttribute(`data-seen-${c.file}`);
+    if (el.checked) o[id] = "1"; else delete o[id];
+    el.closest(".chip")?.classList.toggle("on", el.checked); refreshStatus(); return;
+  }
+  if (el.dataset.flag) { setVal("STSPlayer", el.dataset.flag, el.checked ? "true" : null); return; }
+  if (el.dataset.spirit) { setVal("STSPlayer", el.dataset.spirit, el.checked ? "1" : "0"); return; }
+  if (el.dataset.bool) { setVal("STSPlayer", el.dataset.bool, el.checked ? "true" : "false"); return; }
+  if (el.dataset.f && el.type !== "range") {
+    let v = el.value;
+    if (el.type === "number") { v = String(Math.max(0, Math.floor(+v || 0))); el.value = v; }
+    setVal(el.dataset.f, el.dataset.k, v);
+  }
+});
+document.addEventListener("input", e => {
+  const el = e.target;
+  if (el.type === "range" && el.dataset.f) { el.nextElementSibling.textContent = el.value; setVal(el.dataset.f, el.dataset.k, el.value); }
+});
+
+$("#tabs").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setTab(b.dataset.tab); });
+$("#btn-export-tab").addEventListener("click", () => setTab("export"));
+$("#btn-maxall").addEventListener("click", () => { if (confirm("Unlock all characters, cards, relics and bosses, set every character to Ascension 20, and mark the whole compendium as seen? Your stats are kept.")) unlockEverything(); });
+$("#btn-pick").addEventListener("click", () => $("#file-in").click());
+$("#btn-pick-zip").addEventListener("click", () => $("#zip-in").click());
+$("#file-in").addEventListener("change", e => { loadFileList([...e.target.files]); e.target.value = ""; });
+$("#zip-in").addEventListener("change", e => { loadFileList([...e.target.files]); e.target.value = ""; });
+$("#btn-template").addEventListener("click", () => startFrom("template"));
+$("#btn-blank").addEventListener("click", () => startFrom("blank"));
+$("#btn-restart").addEventListener("click", () => {
+  if (Object.keys(S.files).length && !confirm("Discard everything loaded and start over?")) return;
+  S.files = {}; S.original = {}; $("#editor").classList.add("hidden"); $("#start").classList.remove("hidden"); window.scrollTo({ top: 0 });
+});
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => loadFileList([...e.dataTransfer.files]));
+window.addEventListener("beforeunload", e => { if (dirtyList().length) { e.preventDefault(); e.returnValue = ""; } });
+
+$("#cmd-export").textContent = `mkdir -p ${DL_DIR} && cp -f ${PKG_DIR}/STS* ${DL_DIR}/ && ls ${DL_DIR}`;
+</script>
+</body>
+
+</html>

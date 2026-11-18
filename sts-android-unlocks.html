@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Editing Slay the Spire Unlocks on Android (No Root)</title>
+  <style>
+    :root {
+      --bg: #14110f;
+      --panel: #1f1a17;
+      --panel-2: #29221d;
+      --text: #e8e0d6;
+      --muted: #a89b8c;
+      --accent: #e0a23a;
+      --red: #d9534f;
+      --green: #6fbf73;
+      --code-bg: #0d0b0a;
+      --border: #3a3029;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 2rem 1.1rem 4rem;
+    }
+
+    header {
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.7rem;
+      line-height: 1.25;
+      margin: 0 0 .4rem;
+      color: var(--accent);
+    }
+
+    .sub {
+      color: var(--muted);
+      margin: 0;
+    }
+
+    h2 {
+      font-size: 1.2rem;
+      margin: 2.2rem 0 .8rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    h2 .num {
+      background: var(--accent);
+      color: var(--bg);
+      width: 1.8rem;
+      height: 1.8rem;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      font-size: .95rem;
+      flex: none;
+    }
+
+    p,
+    li {
+      color: var(--text);
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    code {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .9em;
+      background: var(--panel-2);
+      padding: .1em .35em;
+      border-radius: 4px;
+    }
+
+    .cmd {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin: .8rem 0 1rem;
+    }
+
+    .cmd pre {
+      margin: 0;
+      padding: 2.1rem 1rem 1rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+      font-size: .85rem;
+      line-height: 1.5;
+      color: #f3e9dc;
+    }
+
+    .cmd button {
+      position: absolute;
+      top: .45rem;
+      right: .45rem;
+      background: var(--panel-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .2rem .6rem;
+      font-size: .75rem;
+      cursor: pointer;
+    }
+
+    .cmd button:hover {
+      color: var(--text);
+    }
+
+    .cmd button.done {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      margin: 1rem 0;
+    }
+
+    .note {
+      border-left: 4px solid var(--accent);
+    }
+
+    .warn {
+      border-left: 4px solid var(--red);
+    }
+
+    .ok {
+      border-left: 4px solid var(--green);
+    }
+
+    .card strong:first-child {
+      display: block;
+      margin-bottom: .25rem;
+    }
+
+    ul {
+      padding-left: 1.2rem;
+    }
+
+    li {
+      margin: .3rem 0;
+    }
+
+    footer {
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: .85rem;
+      border-top: 1px solid var(--border);
+      padding-top: 1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+
+    <header>
+      <h1>Editing Slay the Spire Unlocks on Android (No Root)</h1>
+      <p class="sub">How to get around locked save folders on newer Android versions using Shizuku.</p>
+    </header>
+
+    <div class="card note">
+      <strong>The short version</strong>
+      On newer Android versions, the game's <code>preferences</code> folder is locked to the game itself. File managers
+      show it as empty, and even a Shizuku shell gets "Permission denied." You can't read or edit the existing files
+      without root. You <em>can</em> replace the folder with one you own, but your current stats and ascension progress
+      don't carry over.
+    </div>
+
+    <h2>What you need</h2>
+    <ul>
+      <li><a href="https://shizuku.rikka.app/">Shizuku</a>, installed and running</li>
+      <li><strong>aShell</strong> (or any terminal app that runs through Shizuku), with Shizuku permission granted</li>
+    </ul>
+    <p>aShell only takes one line at a time, so every command here is a single line. Copy it, paste it and press Enter.
+    </p>
+
+    <h2><span class="num">1</span> Check whether your folder is locked</h2>
+    <p>Save data lives in <code>Android/data/com.humble.SlayTheSpire/files/</code>. The <code>saves</code> folder only
+      holds a run that's in progress, so it's normally empty. Unlocks and stats are in <code>preferences</code>.</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>ls -ld /sdcard/Android/data/com.humble.SlayTheSpire/files/preferences</pre>
+    </div>
+    <p>If the output starts with <code>drwx--S---</code> (or <code>drwx------</code>), only the game can open the
+      folder. Shizuku's shell user is shut out, which is why file managers show it as empty.</p>
+
+    <h2><span class="num">2</span> Swap in a folder you own</h2>
+    <p>This moves the old folder aside, without deleting it, and creates a new one that you can read and write.</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>am force-stop com.humble.SlayTheSpire; cd /sdcard/Android/data/com.humble.SlayTheSpire/files &amp;&amp; mv
+        preferences preferences.bak &amp;&amp; mkdir preferences &amp;&amp; chmod 777 preferences &amp;&amp; echo '{"The
+        Silent":"2","GUARDIAN":"2","Defect":"2","Watcher":"2"}' &gt; preferences/STSUnlocks</pre>
+    </div>
+    <p>The <code>STSUnlocks</code> line unlocks all four characters.</p>
+
+    <h2><span class="num">3</span> Launch the game</h2>
+    <p>Open Slay the Spire. All four characters should be available. The game creates its other preference files in the
+      new folder, but those files are locked to the game too. Only <code>STSUnlocks</code>, the file you created
+      yourself, can be read or copied out.</p>
+
+    <h2><span class="num">4</span> Make the game's files readable</h2>
+    <p>You own the new folder, so you can move the game's locked files out of the way and put empty files you own in
+      their place. If the game writes into an existing file instead of replacing it, the file stays yours and you can
+      read it. This all-in-one line force-stops the game, moves the locked files into <code>prefs-game-copies</code>,
+      creates the empty replacements, and lists the result:</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>am force-stop com.humble.SlayTheSpire; cd /sdcard/Android/data/com.humble.SlayTheSpire/files/preferences
+        &amp;&amp; mkdir -p ../prefs-game-copies &amp;&amp; for f in *; do [ "$f" = STSUnlocks ] &amp;&amp; continue; mv
+        "$f" "../prefs-game-copies/$f"; echo '{}' &gt; "$f"; chmod 666 "$f"; done; ls -la</pre>
+    </div>
+    <p>Before you launch the game, the list should show every file owned by <code>shell</code>, with
+      <code>-rw-rw-rw-</code> permissions and a size of 3 bytes (just the <code>{}</code> placeholder):</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>-rw-rw-rw- 1 shell shell 3 ... STSAchievements
+        -rw-rw-rw- 1 shell shell 3 ... STSDataVagabond
+        -rw-rw-rw- 1 shell shell 3 ... STSPlayer
+        -rw-rw-rw- 1 shell shell 3 ... STSUnlockProgress
+        ...
+        -rw-rw---- 1 shell shell 61 ... STSUnlocks</pre>
+    </div>
+    <p>Open the game, play a floor or change a setting, then close it. Check the folder again:</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>ls -la /sdcard/Android/data/com.humble.SlayTheSpire/files/preferences</pre>
+    </div>
+    <p>The files the game saved to have grown past 3 bytes but are still owned by <code>shell</code> and readable:</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>-rw-rw-rw- 1 shell shell 326 ... STSGameplaySettings
+        -rw-rw-rw- 1 shell shell 43 ... STSPlayer
+        -rw-rw-rw- 1 shell shell 83 ... STSSaveSlots
+        -rw-rw-rw- 1 shell shell 80 ... STSSeenRelics
+        -rw-rw-rw- 1 shell shell 42 ... STSSound</pre>
+    </div>
+    <div class="card ok">
+      <strong>Tested: this works</strong>
+      The game writes into the files you created instead of replacing them, so they stay yours. Files the game hasn't
+      used yet stay at 3 bytes until it saves something to them. You can read and edit all of them from now on.
+    </div>
+    <p>If the owner ever goes back to <code>u0_a…</code>, that copy of the game is recreating its files. Run this step
+      again, or overwrite the file with your own version.</p>
+    <p>To read a file:</p>
+    <div class="cmd"><button>Copy</button>
+      <pre>cat /sdcard/Android/data/com.humble.SlayTheSpire/files/preferences/STSUnlockProgress</pre>
+    </div>
+    <div class="card warn">
+      <strong>If the game crashes on startup</strong>
+      The game may not like the empty placeholder files. This puts its original files back from
+      <code>prefs-game-copies</code>:
+      <div class="cmd"><button>Copy</button>
+        <pre>am force-stop com.humble.SlayTheSpire; cd /sdcard/Android/data/com.humble.SlayTheSpire/files/preferences
+          &amp;&amp; for f in ../prefs-game-copies/*; do mv -f "$f" .; done; ls -la</pre>
+      </div>
+    </div>
+    <p>Always force-stop the game before editing anything, so it doesn't overwrite your changes.</p>
+
+    <div class="card warn">
+      <strong>What you lose</strong>
+      Your old stats, ascension levels and card/relic unlocks are still in <code>preferences.bak</code>, which you still
+      can't open. They can't be copied, moved or merged into the new folder without root. The new folder starts a fresh
+      profile, plus whatever you unlock by editing.
+    </div>
+
+    <h2><span class="num">5</span> Undo (go back to your old save)</h2>
+    <div class="cmd"><button>Copy</button>
+      <pre>am force-stop com.humble.SlayTheSpire; cd /sdcard/Android/data/com.humble.SlayTheSpire/files &amp;&amp; mv
+        preferences preferences.test &amp;&amp; mv preferences.bak preferences</pre>
+    </div>
+
+    <div class="card note">
+      <strong>About the old folder</strong>
+      You can't delete <code>preferences.bak</code> from the shell either, because removing the files inside it needs
+      the same access. It's small, so just leave it. Don't use "Clear storage" in Android's app settings or uninstall
+      the game. Either one deletes both folders.
+    </div>
+
+    <h2>If it doesn't work</h2>
+    <ul>
+      <li><strong><code>mv</code> says "Permission denied":</strong> your Android version doesn't let the shell rename
+        the folder. Without root, this method won't work.</li>
+      <li><strong>The game ignores or resets the new folder:</strong> run the undo steps to get your old save back.</li>
+      <li><strong>You have root:</strong> just copy the folder out with<br><code>su -c cp -r
+          /data/media/0/Android/data/com.humble.SlayTheSpire/files /sdcard/Download/</code></li>
+    </ul>
+
+    <footer>
+      Tested November 2026 with Shizuku and aShell. Paths and permissions can vary by Android version and phone maker.
+    </footer>
+
+  </main>
+  <script>
+  document.querySelectorAll('.cmd button').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var text = btn.nextElementSibling.textContent;
+      var done = function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('done');
+        setTimeout(function () { btn.textContent = 'Copy'; btn.classList.remove('done'); }, 1500);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () {});
+      } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    });
+  });
+</script>
+</body>
+
+</html>
